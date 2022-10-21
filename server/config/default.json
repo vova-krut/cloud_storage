@@ -1,4 +1,5 @@
 {
     "port": 5000,
-    "dbUri": "mongodb+srv://root:root@cluster0.ecneint.mongodb.net/?retryWrites=true&w=majority"
+    "dbUri": "mongodb+srv://root:root@cluster0.ecneint.mongodb.net/?retryWrites=true&w=majority",
+    "secretKey": "kdnaskdlnsalkdnasklfnslknfkladsnflkasnlkdnaslkdsaklndklsa"
 }
