@@ -1,15 +1,16 @@
 import React, { useState } from "react";
-import { registration } from "../../actions/user";
+import { useDispatch } from "react-redux";
+import { login } from "../../actions/user";
 import Input from "../../utils/input/Input";
 
-import "./registration.css";
-
-const Registration = () => {
+const Login = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const dispatch = useDispatch();
+
     return (
-        <div className="registration">
-            <div className="registration__header">Registration</div>
+        <div className="authorization">
+            <div className="authorization__header">Login</div>
             <Input
                 value={email}
                 setValue={setEmail}
@@ -23,13 +24,13 @@ const Registration = () => {
                 placeholder="Enter your password..."
             />
             <button
-                onClick={() => registration(email, password)}
-                className="registration__btn"
+                onClick={() => dispatch(login(email, password))}
+                className="authorization__btn"
             >
-                Register
+                Login
             </button>
         </div>
     );
 };
 
-export default Registration;
+export default Login;

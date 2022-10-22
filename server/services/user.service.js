@@ -26,20 +26,41 @@ class UserService {
         const user = await User.findOne({ email });
 
         if (!user) {
-            throw new ApiError.BadRequest(`Email or password is incorrect`);
+            throw ApiError.BadRequest(`Email or password is incorrect`);
         }
 
         const passwordsMatch = await bcrypt.compare(password, user.password);
 
         if (!passwordsMatch) {
-            throw new ApiError.BadRequest(`Email or password is incorrect`);
+            throw ApiError.BadRequest(`Email or password is incorrect`);
         }
 
-        const token = jwt.sign(
-            { id: user.id, email },
-            config.get("secretKey"),
-            { expiresIn: "1h" }
-        );
+        const token = jwt.sign({ id: user.id }, config.get("secretKey"), {
+            expiresIn: "1h",
+        });
+
+        return {
+            token,
+            user: {
+                id: user.id,
+                email: user.email,
+                diskSpace: user.diskSpace,
+                usedSpace: user.usedSpace,
+                avatar: user.avatar,
+            },
+        };
+    }
+
+    async authByToken(userId) {
+        const user = await User.findById(userId);
+
+        if (!user) {
+            throw ApiError.UnauthorizedError();
+        }
+
+        const token = jwt.sign({ id: user.id }, config.get("secretKey"), {
+            expiresIn: "1h",
+        });
 
         return {
             token,

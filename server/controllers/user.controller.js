@@ -31,6 +31,16 @@ class UserController {
             next(e);
         }
     }
+
+    async authByToken(req, res, next) {
+        try {
+            const userId = req.user.id;
+            const data = await userService.authByToken(userId);
+            return res.json(data);
+        } catch (e) {
+            next(e);
+        }
+    }
 }
 
 export default new UserController();
