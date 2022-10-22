@@ -3,12 +3,14 @@ import config from "config";
 import { connectToDb } from "./db.js";
 import router from "./routes/index.js";
 import errorMiddleware from "./middlewares/error.middleware.js";
+import cors from "cors";
 
 const app = express();
 
 const PORT = config.get("port") || 5000;
 
 app.use(express.json());
+app.use(cors());
 app.use("/api", router);
 app.use(errorMiddleware);
 
