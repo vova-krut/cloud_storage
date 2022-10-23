@@ -3,13 +3,15 @@ import User from "../models/User.js";
 import * as bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import config from "config";
+import fileService from "./file.service.js";
+import File from "../models/File.js";
 
 class UserService {
     async registration(email, password) {
         const candidate = await User.findOne({ email });
 
         if (candidate) {
-            throw new ApiError.BadRequest(
+            throw ApiError.BadRequest(
                 `User with email ${email} already exists`
             );
         }
@@ -19,6 +21,9 @@ class UserService {
             email,
             password: hashPassword,
         });
+        await fileService._createDirectoryInFs(
+            new File({ user: user._id, name: "" })
+        );
         return user;
     }
 

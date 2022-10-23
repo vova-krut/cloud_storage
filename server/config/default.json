@@ -1,5 +1,6 @@
 {
     "port": 5000,
     "dbUri": "mongodb+srv://root:root@cluster0.ecneint.mongodb.net/?retryWrites=true&w=majority",
-    "secretKey": "kdnaskdlnsalkdnasklfnslknfkladsnflkasnlkdnaslkdsaklndklsa"
+    "secretKey": "kdnaskdlnsalkdnasklfnslknfkladsnflkasnlkdnaslkdsaklndklsa",
+    "filePath": "D:\\Node.js Projects\\cloud_storage\\server\\files"
 }
