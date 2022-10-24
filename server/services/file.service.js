@@ -17,6 +17,7 @@ class FileService {
                     return reject({ message: "File already exists" });
                 }
             } catch (e) {
+                console.log(e);
                 return reject({ message: "File error" });
             }
         });

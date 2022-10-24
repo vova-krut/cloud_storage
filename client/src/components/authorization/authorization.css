@@ -15,7 +15,7 @@
     font-weight: 700;
 }
 
-button {
+.authorization__btn {
     border: none;
     background-color: #566885;
     border-radius: 8px;
@@ -24,10 +24,6 @@ button {
     padding: 5px 10px;
     align-self: flex-end;
     margin-top: 10px;
-}
-
-input {
-    margin: 10px 20px;
 }
 
 button:hover {
