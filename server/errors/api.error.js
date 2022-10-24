@@ -15,4 +15,9 @@ export default class ApiError extends Error {
     static BadRequest(message, errors = []) {
         return new ApiError(400, message, errors);
     }
+
+    static InternalError(e) {
+        console.error(e);
+        return new ApiError(500, "Internal server error");
+    }
 }
