@@ -11,6 +11,8 @@ class FileService {
             }`;
             if (!fs.existsSync(filePath)) {
                 fs.mkdirSync(filePath);
+            } else {
+                throw ApiError.BadRequest("File already exists");
             }
         } catch (e) {
             throw ApiError.InternalError(e);
