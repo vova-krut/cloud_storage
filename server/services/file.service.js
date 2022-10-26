@@ -51,11 +51,11 @@ class FileService {
                 return dbFile;
             }
 
-            await this._registerFileInUser(file, user);
-
-            this.fsService._registerFileInFs(file, user);
+            await this._checkUserForFreeSpace(file, user);
 
             const dbFile = this._registerFileInDb(file, user);
+
+            this.fsService._registerFileInFs(dbFile, user);
 
             await this._confirmFileUpload(dbFile, user);
 
@@ -68,11 +68,11 @@ class FileService {
     async _uploadFileToParent(file, user, parentId) {
         const parent = await File.findOne({ user: user._id, _id: parentId });
 
-        await this._registerFileInUser(file, user);
-
-        this.fsService._registerFileInFs(file, user, parent);
+        await this._checkUserForFreeSpace(file, user);
 
         const dbFile = this._registerFileInDb(file, user, parent);
+
+        this.fsService._registerFileInFs(dbFile, parent);
 
         await this._confirmFileUpload(dbFile, user, parent);
 
@@ -82,6 +82,7 @@ class FileService {
     async _confirmFileUpload(file, user, parent) {
         await file.save();
         await user.save();
+        file.mv(this.fsService.path);
         await parent?.save();
     }
 
@@ -95,7 +96,7 @@ class FileService {
         await parentDir.save();
     }
 
-    async _registerFileInUser(file, user) {
+    async _checkUserForFreeSpace(file, user) {
         if (user.usedSpace + file.size > user.diskSpace) {
             throw new ApiError(400, "There is no free space");
         }
@@ -136,16 +137,14 @@ class FsService {
         }
     }
 
-    _registerFileInFs(file, user, parent) {
-        const path = `${config.get("filePath")}\\${user._id}\\${
+    _registerFileInFs(file, parent) {
+        this.path = `${config.get("filePath")}\\${file.user}\\${
             parent?.path || ""
         }\\${file.name}`;
 
         if (fs.existsSync(path)) {
             throw new ApiError(400, "File already exists");
         }
-
-        file.mv(path);
     }
 }
 
