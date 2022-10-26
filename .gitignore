@@ -1,3 +1,6 @@
+# Storage of uploaded files
+files/
+
 # Logs
 logs
 *.log

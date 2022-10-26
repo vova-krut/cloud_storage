@@ -5,6 +5,8 @@ import ApiError from "../errors/api.error.js";
 import userService from "./user.service.js";
 
 class FileService {
+    fsService = new FsService();
+
     async createDir(name, type, parent, userId) {
         try {
             const dir = new File({
@@ -18,7 +20,7 @@ class FileService {
             const parentDir = await File.findOne({ _id: parent });
 
             if (!parentDir) {
-                this._createDirectoryInFs(dir);
+                this.fsService._createDirectoryInFs(dir);
             } else {
                 await this._addDirToParent(dir, parentDir);
             }
@@ -38,20 +40,24 @@ class FileService {
 
     async uploadFile(file, userId, parentId) {
         try {
+            const user = await userService.findUserById(userId);
+
             if (parentId) {
                 const dbFile = await this._uploadFileToParent(
                     file,
-                    userId,
+                    user,
                     parentId
                 );
                 return dbFile;
             }
 
-            await this._registerFileInUser(file, userId);
+            await this._registerFileInUser(file, user);
 
-            this._registerFileInFs(file, userId);
+            this.fsService._registerFileInFs(file, user);
 
-            const dbFile = await this._registerFileInDb(file, userId);
+            const dbFile = this._registerFileInDb(file, user);
+
+            await this._confirmFileUpload(dbFile, user);
 
             return dbFile;
         } catch (e) {
@@ -59,19 +65,67 @@ class FileService {
         }
     }
 
-    async _uploadFileToParent(file, userId, parentId) {
-        const parent = await File.findOne({ user: userId, _id: parentId });
-        await this._registerFileInUser(file, userId);
-        this._registerFileInFs(file, userId, parent);
-        const dbFile = await this._registerFileInDb(file, userId, parent);
+    async _uploadFileToParent(file, user, parentId) {
+        const parent = await File.findOne({ user: user._id, _id: parentId });
+
+        await this._registerFileInUser(file, user);
+
+        this.fsService._registerFileInFs(file, user, parent);
+
+        const dbFile = this._registerFileInDb(file, user, parent);
+
+        await this._confirmFileUpload(dbFile, user, parent);
+
         return dbFile;
     }
 
+    async _confirmFileUpload(file, user, parent) {
+        await file.save();
+        await user.save();
+        await parent?.save();
+    }
+
+    async _addDirToParent(dir, parentDir) {
+        dir.path = `${parentDir.path}\\${dir.name}`;
+
+        this.fsService._createDirectoryInFs(dir);
+
+        parentDir.children.push(dir._id);
+
+        await parentDir.save();
+    }
+
+    async _registerFileInUser(file, user) {
+        if (user.usedSpace + file.size > user.diskSpace) {
+            throw new ApiError(400, "There is no free space");
+        }
+
+        user.usedSpace += file.size;
+    }
+
+    _registerFileInDb(file, user, parent) {
+        const type = file.name.split(".").pop();
+
+        const dbFile = new File({
+            name: file.name,
+            type,
+            size: file.size,
+            path: parent?.path,
+            parent: parent?._id,
+            user: user._id,
+        });
+
+        return dbFile;
+    }
+}
+
+class FsService {
     _createDirectoryInFs(dir) {
         try {
             const filePath = `${config.get("filePath")}\\${dir.user}\\${
                 dir.path
             }`;
+
             if (!fs.existsSync(filePath)) {
                 fs.mkdirSync(filePath);
             } else {
@@ -82,27 +136,8 @@ class FileService {
         }
     }
 
-    async _addDirToParent(dir, parentDir) {
-        dir.path = `${parentDir.path}\\${dir.name}`;
-        this._createDirectoryInFs(dir);
-        parentDir.children.push(dir._id);
-        await parentDir.save();
-    }
-
-    async _registerFileInUser(file, userId) {
-        const user = await userService.findUserById(userId);
-
-        if (user.usedSpace + file.size > user.diskSpace) {
-            throw new ApiError(400, "There is no free space");
-        }
-
-        user.usedSpace += file.size;
-
-        await user.save();
-    }
-
-    _registerFileInFs(file, userId, parent) {
-        const path = `${config.get("filePath")}\\${userId}\\${
+    _registerFileInFs(file, user, parent) {
+        const path = `${config.get("filePath")}\\${user._id}\\${
             parent?.path || ""
         }\\${file.name}`;
 
@@ -111,21 +146,6 @@ class FileService {
         }
 
         file.mv(path);
-    }
-
-    async _registerFileInDb(file, userId, parent) {
-        const type = file.name.split(".").pop();
-
-        const dbFile = await File.create({
-            name: file.name,
-            type,
-            size: file.size,
-            path: parent?.path,
-            parent: parent?._id,
-            user: userId,
-        });
-
-        return dbFile;
     }
 }
 
