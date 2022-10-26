@@ -1,11 +1,24 @@
 import React from "react";
 import dirLogo from "../../../../assets/img/dir.svg";
 import fileLogo from "../../../../assets/img/file.svg";
+import { useDispatch, useSelector } from "react-redux";
+import { pushToStack, setCurrentDir } from "../../../../reducers/fileReducer";
 import "./file.css";
 
 const File = ({ file }) => {
+    const dispatch = useDispatch();
+    const currentDir = useSelector((state) => state.files.currentDir);
+
+    const openDirHandler = () => {
+        dispatch(pushToStack(currentDir));
+        dispatch(setCurrentDir(file._id));
+    };
+
     return (
-        <div className="file">
+        <div
+            className="file"
+            onClick={file.type === "dir" ? () => openDirHandler() : ""}
+        >
             <img
                 src={file.type === "dir" ? dirLogo : fileLogo}
                 alt=""
