@@ -78,6 +78,11 @@ class UserService {
             },
         };
     }
+
+    async findUserById(userId) {
+        const user = await User.findById(userId);
+        return user;
+    }
 }
 
 export default new UserService();

@@ -3,12 +3,14 @@ import config from "config";
 import { connectToDb } from "./db.js";
 import router from "./routes/index.js";
 import errorMiddleware from "./middlewares/error.middleware.js";
+import fileUpload from "express-fileupload";
 import cors from "cors";
 
 const app = express();
 
 const PORT = config.get("port") || 5000;
 
+app.use(fileUpload({}));
 app.use(express.json());
 app.use(cors());
 app.use("/api", router);

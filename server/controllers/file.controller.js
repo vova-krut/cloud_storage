@@ -27,6 +27,18 @@ class FileController {
             next(e);
         }
     }
+
+    async uploadFile(req, res, next) {
+        try {
+            const file = req.files.file;
+            const userId = req.user.id;
+            const parentId = req.body.parent;
+            const dbFile = await fileService.uploadFile(file, userId, parentId);
+            return res.json(dbFile);
+        } catch (e) {
+            next(e);
+        }
+    }
 }
 
 export default new FileController();
