@@ -1,12 +1,9 @@
-import fs from "fs";
 import File from "../models/File.js";
-import config from "config";
 import ApiError from "../errors/api.error.js";
 import userService from "./user.service.js";
+import fsService from "./fs.service.js";
 
 class FileService {
-    fsService = new FsService();
-
     async createDir(name, type, parent, userId) {
         try {
             const dir = new File({
@@ -20,7 +17,7 @@ class FileService {
             const parentDir = await File.findOne({ _id: parent });
 
             if (!parentDir) {
-                this.fsService._createDirectoryInFs(dir);
+                fsService._createDirectoryInFs(dir);
             } else {
                 await this._addDirToParent(dir, parentDir);
             }
@@ -42,22 +39,18 @@ class FileService {
         try {
             const user = await userService.findUserById(userId);
 
-            if (parentId) {
-                const dbFile = await this._uploadFileToParent(
-                    file,
-                    user,
-                    parentId
-                );
-                return dbFile;
-            }
+            const parent = await File.findOne({
+                user: user._id,
+                _id: parentId,
+            });
 
-            await this._checkUserForFreeSpace(file, user);
+            this._checkUserForFreeSpace(file, user);
 
-            const dbFile = this._registerFileInDb(file, user);
+            const dbFile = this._registerFileInDb(file, user, parent);
 
-            this.fsService._registerFileInFs(dbFile, user);
+            fsService._registerFileInFs(dbFile, parent);
 
-            await this._confirmFileUpload(dbFile, user);
+            await this._confirmFileUpload(file, dbFile, user, parent);
 
             return dbFile;
         } catch (e) {
@@ -65,38 +58,14 @@ class FileService {
         }
     }
 
-    async _uploadFileToParent(file, user, parentId) {
-        const parent = await File.findOne({ user: user._id, _id: parentId });
-
-        await this._checkUserForFreeSpace(file, user);
-
-        const dbFile = this._registerFileInDb(file, user, parent);
-
-        this.fsService._registerFileInFs(dbFile, parent);
-
-        await this._confirmFileUpload(dbFile, user, parent);
-
-        return dbFile;
-    }
-
-    async _confirmFileUpload(file, user, parent) {
-        await file.save();
+    async _confirmFileUpload(file, dbFile, user, parent) {
+        file.mv(fsService.path);
+        await dbFile.save();
         await user.save();
-        file.mv(this.fsService.path);
         await parent?.save();
     }
 
-    async _addDirToParent(dir, parentDir) {
-        dir.path = `${parentDir.path}\\${dir.name}`;
-
-        this.fsService._createDirectoryInFs(dir);
-
-        parentDir.children.push(dir._id);
-
-        await parentDir.save();
-    }
-
-    async _checkUserForFreeSpace(file, user) {
+    _checkUserForFreeSpace(file, user) {
         if (user.usedSpace + file.size > user.diskSpace) {
             throw new ApiError(400, "There is no free space");
         }
@@ -118,33 +87,15 @@ class FileService {
 
         return dbFile;
     }
-}
 
-class FsService {
-    _createDirectoryInFs(dir) {
-        try {
-            const filePath = `${config.get("filePath")}\\${dir.user}\\${
-                dir.path
-            }`;
+    async _addDirToParent(dir, parentDir) {
+        dir.path = `${parentDir.path}\\${dir.name}`;
 
-            if (!fs.existsSync(filePath)) {
-                fs.mkdirSync(filePath);
-            } else {
-                throw ApiError.BadRequest("File already exists");
-            }
-        } catch (e) {
-            throw ApiError.InternalError(e);
-        }
-    }
+        fsService._createDirectoryInFs(dir);
 
-    _registerFileInFs(file, parent) {
-        this.path = `${config.get("filePath")}\\${file.user}\\${
-            parent?.path || ""
-        }\\${file.name}`;
+        parentDir.children.push(dir._id);
 
-        if (fs.existsSync(path)) {
-            throw new ApiError(400, "File already exists");
-        }
+        await parentDir.save();
     }
 }
 
