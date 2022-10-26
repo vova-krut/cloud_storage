@@ -2,7 +2,7 @@ import config from "config";
 import fs from "fs";
 
 class FsService {
-    _createDirectoryInFs(dir) {
+    createDirectoryInFs(dir) {
         try {
             const filePath = `${config.get("filePath")}\\${dir.user}\\${
                 dir.path
@@ -18,7 +18,7 @@ class FsService {
         }
     }
 
-    _registerFileInFs(file, parent) {
+    registerFileInFs(file, parent) {
         this.path = `${config.get("filePath")}\\${file.user}\\${
             parent?.path || ""
         }\\${file.name}`;

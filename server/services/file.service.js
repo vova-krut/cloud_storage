@@ -17,7 +17,7 @@ class FileService {
             const parentDir = await File.findOne({ _id: parent });
 
             if (!parentDir) {
-                fsService._createDirectoryInFs(dir);
+                fsService.createDirectoryInFs(dir);
             } else {
                 await this._addDirToParent(dir, parentDir);
             }
@@ -48,7 +48,7 @@ class FileService {
 
             const dbFile = this._registerFileInDb(file, user, parent);
 
-            fsService._registerFileInFs(dbFile, parent);
+            fsService.registerFileInFs(dbFile, parent);
 
             await this._confirmFileUpload(file, dbFile, user, parent);
 
@@ -91,7 +91,7 @@ class FileService {
     async _addDirToParent(dir, parentDir) {
         dir.path = `${parentDir.path}\\${dir.name}`;
 
-        fsService._createDirectoryInFs(dir);
+        fsService.createDirectoryInFs(dir);
 
         parentDir.children.push(dir._id);
 
