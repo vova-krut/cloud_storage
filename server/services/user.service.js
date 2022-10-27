@@ -3,8 +3,8 @@ import User from "../models/User.js";
 import * as bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import config from "config";
-import fileService from "./file.service.js";
 import File from "../models/File.js";
+import fsService from "./fs.service.js";
 
 class UserService {
     async registration(email, password) {
@@ -21,7 +21,7 @@ class UserService {
             email,
             password: hashPassword,
         });
-        await fileService._createDirectoryInFs(
+        await fsService.createDirectoryInFs(
             new File({ user: user._id, name: "" })
         );
         return user;

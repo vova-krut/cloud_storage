@@ -48,3 +48,47 @@ export function createDir(dirId, name) {
         }
     };
 }
+
+export function uploadFile(file, dirId) {
+    return async (dispatch) => {
+        try {
+            console.log("In upload file");
+            const formData = new FormData();
+            formData.append("file", file);
+            if (dirId) {
+                formData.append("parent", dirId);
+            }
+            const response = await axios.post(
+                `http://localhost:5000/api/file/upload`,
+                formData,
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem(
+                            "token"
+                        )}`,
+                    },
+                    onUploadProgress: (progressEvent) => {
+                        const totalLength = progressEvent.lengthComputable
+                            ? progressEvent.total
+                            : progressEvent.target.getResponseHeader(
+                                  "content-length"
+                              ) ||
+                              progressEvent.target.getResponseHeader(
+                                  "x-decompressed-content-length"
+                              );
+                        console.log("total", totalLength);
+                        if (totalLength) {
+                            let progress = Math.round(
+                                (progressEvent.loaded * 100) / totalLength
+                            );
+                            console.log(progress);
+                        }
+                    },
+                }
+            );
+            alert("Check console");
+            console.log(response.data);
+            dispatch(addFile(response.data));
+        } catch (e) {}
+    };
+}

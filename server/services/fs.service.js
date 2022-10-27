@@ -1,5 +1,6 @@
 import config from "config";
 import fs from "fs";
+import ApiError from "../errors/api.error.js";
 
 class FsService {
     createDirectoryInFs(dir) {
