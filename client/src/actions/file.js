@@ -52,7 +52,6 @@ export function createDir(dirId, name) {
 export function uploadFile(file, dirId) {
     return async (dispatch) => {
         try {
-            console.log("In upload file");
             const formData = new FormData();
             formData.append("file", file);
             if (dirId) {
@@ -86,8 +85,6 @@ export function uploadFile(file, dirId) {
                     },
                 }
             );
-            alert("Check console");
-            console.log(response.data);
             dispatch(addFile(response.data));
         } catch (e) {}
     };
