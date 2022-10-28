@@ -4,7 +4,7 @@ import fileLogo from "../../../../assets/img/file.svg";
 import { useDispatch, useSelector } from "react-redux";
 import { pushToStack, setCurrentDir } from "../../../../reducers/fileReducer";
 import "./file.css";
-import { downloadFile } from "../../../../actions/file";
+import { deleteFile, downloadFile } from "../../../../actions/file";
 
 const File = ({ file }) => {
     const dispatch = useDispatch();
@@ -20,6 +20,11 @@ const File = ({ file }) => {
     const downloadClickHandler = (event) => {
         event.stopPropagation();
         downloadFile(file);
+    };
+
+    const deleteClickHandler = (event) => {
+        event.stopPropagation();
+        dispatch(deleteFile(file));
     };
 
     return (
@@ -40,7 +45,12 @@ const File = ({ file }) => {
                     Download
                 </button>
             )}
-            <button className="file__btn file__delete">Delete</button>
+            <button
+                onClick={(e) => deleteClickHandler(e)}
+                className="file__btn file__delete"
+            >
+                Delete
+            </button>
         </div>
     );
 };

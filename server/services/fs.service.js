@@ -19,24 +19,25 @@ class FsService {
         }
     }
 
-    registerFileInFs(file, parent) {
-        this.path = `${config.get("filePath")}\\${file.user}\\${
-            parent?.path || ""
-        }\\${file.name}`;
+    registerFileInFs(file) {
+        this.path = this.getFilePath(file);
 
         if (fs.existsSync(this.path)) {
             throw new ApiError(400, "File already exists");
         }
     }
 
-    getFilePath(file, userId) {
-        const path = `${config.get("filePath")}\\${userId}\\${file.path}\\${
-            file.name
-        }`;
-        if (fs.existsSync(path)) {
-            return path;
+    getFilePath(file) {
+        return `${config.get("filePath")}\\${file.user}\\${file.path}`;
+    }
+
+    deleteFile(file) {
+        const path = this.getFilePath(file);
+        if (file.type === "dir") {
+            fs.rmdirSync(path);
+        } else {
+            fs.unlinkSync(path);
         }
-        throw new ApiError(400, "Download error");
     }
 }
 

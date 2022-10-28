@@ -48,7 +48,7 @@ class FileService {
 
             const dbFile = this._registerFileInDb(file, user, parent);
 
-            fsService.registerFileInFs(dbFile, parent);
+            fsService.registerFileInFs(dbFile);
 
             await this._confirmFileUpload(file, dbFile, user, parent);
 
@@ -61,10 +61,24 @@ class FileService {
     async downloadFile(fileId, userId) {
         try {
             const file = await File.findOne({ _id: fileId, user: userId });
-            const path = fsService.getFilePath(file, userId);
+            const path = fsService.getFilePath(file);
             return { file, path };
         } catch (e) {
             throw ApiError.InternalError(e);
+        }
+    }
+
+    async deleteFile(fileId, userId) {
+        try {
+            const file = await File.findOne({ _id: fileId, user: userId });
+            if (!file) {
+                throw new ApiError(400, "File not found");
+            }
+            fsService.deleteFile(file);
+            await file.remove();
+            await this._deleteFileFromUser(file, userId);
+        } catch (e) {
+            throw new ApiError(400, "Dir is not empty");
         }
     }
 
@@ -83,14 +97,22 @@ class FileService {
         user.usedSpace += file.size;
     }
 
+    async _deleteFileFromUser(file, userId) {
+        const user = await userService.findUserById(userId);
+        user.usedSpace -= file.size;
+        await user.save();
+    }
+
     _registerFileInDb(file, user, parent) {
         const type = file.name.split(".").pop();
+
+        const filePath = parent ? `${parent.path}\\${file.name}` : file.name;
 
         const dbFile = new File({
             name: file.name,
             type,
             size: file.size,
-            path: parent?.path,
+            path: filePath,
             parent: parent?._id,
             user: user._id,
         });

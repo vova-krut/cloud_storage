@@ -53,6 +53,17 @@ class FileController {
             next(e);
         }
     }
+
+    async deleteFile(req, res, next) {
+        try {
+            const fileId = req.query.id;
+            const userId = req.user.id;
+            await fileService.deleteFile(fileId, userId);
+            return res.json({ message: "File was deleted" });
+        } catch (e) {
+            next(e);
+        }
+    }
 }
 
 export default new FileController();
