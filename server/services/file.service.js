@@ -117,6 +117,8 @@ class FileService {
             user: user._id,
         });
 
+        parent.size += file.size;
+
         return dbFile;
     }
 
