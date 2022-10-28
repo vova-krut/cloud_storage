@@ -39,6 +39,20 @@ class FileController {
             next(e);
         }
     }
+
+    async downloadFile(req, res, next) {
+        try {
+            const fileId = req.query.id;
+            const userId = req.user.id;
+            const { file, path } = await fileService.downloadFile(
+                fileId,
+                userId
+            );
+            return res.download(path, file.name);
+        } catch (e) {
+            next(e);
+        }
+    }
 }
 
 export default new FileController();

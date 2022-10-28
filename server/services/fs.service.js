@@ -28,6 +28,16 @@ class FsService {
             throw new ApiError(400, "File already exists");
         }
     }
+
+    getFilePath(file, userId) {
+        const path = `${config.get("filePath")}\\${userId}\\${file.path}\\${
+            file.name
+        }`;
+        if (fs.existsSync(path)) {
+            return path;
+        }
+        throw new ApiError(400, "Download error");
+    }
 }
 
 export default new FsService();

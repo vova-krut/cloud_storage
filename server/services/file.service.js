@@ -58,6 +58,16 @@ class FileService {
         }
     }
 
+    async downloadFile(fileId, userId) {
+        try {
+            const file = await File.findOne({ _id: fileId, user: userId });
+            const path = fsService.getFilePath(file, userId);
+            return { file, path };
+        } catch (e) {
+            throw ApiError.InternalError(e);
+        }
+    }
+
     async _confirmFileUpload(file, dbFile, user, parent) {
         file.mv(fsService.path);
         await dbFile.save();
