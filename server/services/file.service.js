@@ -77,6 +77,7 @@ class FileService {
             fsService.deleteFile(file);
             await file.remove();
             await this._deleteFileFromUser(file, userId);
+            await this._deleteFileFromParent(file);
         } catch (e) {
             throw new ApiError(400, "Dir is not empty");
         }
@@ -101,6 +102,12 @@ class FileService {
         const user = await userService.findUserById(userId);
         user.usedSpace -= file.size;
         await user.save();
+    }
+
+    async _deleteFileFromParent(file) {
+        const parent = await File.findById(file.parent);
+        parent.size -= file.size;
+        await parent.save();
     }
 
     _registerFileInDb(file, user, parent) {
