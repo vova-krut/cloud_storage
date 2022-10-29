@@ -106,8 +106,10 @@ class FileService {
 
     async _deleteFileFromParent(file) {
         const parent = await File.findById(file.parent);
-        parent.size -= file.size;
-        await parent.save();
+        if (parent) {
+            parent.size -= file.size;
+            await parent.save();
+        }
     }
 
     _registerFileInDb(file, user, parent) {
@@ -124,7 +126,9 @@ class FileService {
             user: user._id,
         });
 
-        parent.size += file.size;
+        if (parent) {
+            parent.size += file.size;
+        }
 
         return dbFile;
     }
