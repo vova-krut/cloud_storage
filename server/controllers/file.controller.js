@@ -20,7 +20,8 @@ class FileController {
         try {
             const files = await fileService.fetchFiles(
                 req.user.id,
-                req.query.parent
+                req.query.parent,
+                req.query.sort
             );
             return res.json({ files });
         } catch (e) {

@@ -30,8 +30,10 @@ class FileService {
         }
     }
 
-    async fetchFiles(user, parent) {
-        const files = await File.find({ user, parent });
+    async fetchFiles(user, parent, sort) {
+        const files = sort
+            ? await File.find({ user, parent }).sort({ [sort]: 1 })
+            : await File.find({ user, parent });
         return files;
     }
 
