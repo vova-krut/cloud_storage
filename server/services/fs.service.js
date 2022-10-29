@@ -5,10 +5,7 @@ import ApiError from "../errors/api.error.js";
 class FsService {
     createDirectoryInFs(dir) {
         try {
-            const filePath = `${config.get("filePath")}\\${dir.user}\\${
-                dir.path
-            }`;
-
+            const filePath = this.getFilePath(dir);
             if (!fs.existsSync(filePath)) {
                 fs.mkdirSync(filePath);
             } else {
