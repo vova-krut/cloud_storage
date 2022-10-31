@@ -1,4 +1,5 @@
 import axios from "axios";
+import { hideLoader, showLoader } from "../reducers/appReducer";
 import { addFile, deleteFileAction, setFiles } from "../reducers/fileReducer";
 import {
     addUploadFile,
@@ -9,6 +10,7 @@ import {
 export function getFiles(dirId, sort) {
     return async (dispatch) => {
         try {
+            dispatch(showLoader());
             let url = `http://localhost:5000/api/file?sort=${sort}`;
             if (dirId) {
                 url += `&parent=${dirId}`;
@@ -21,6 +23,8 @@ export function getFiles(dirId, sort) {
             dispatch(setFiles(response.data.files));
         } catch (e) {
             alert(e.response.data.message);
+        } finally {
+            dispatch(hideLoader());
         }
     };
 }
@@ -136,6 +140,29 @@ export function deleteFile(file) {
         } catch (e) {
             console.error(e.response.data);
             alert(e.response.data.message);
+        }
+    };
+}
+
+export function searchFiles(search) {
+    return async (dispatch) => {
+        try {
+            const response = await axios.get(
+                `http://localhost:5000/api/file/search?search=${search}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem(
+                            "token"
+                        )}`,
+                    },
+                }
+            );
+            dispatch(setFiles(response.data.files));
+        } catch (e) {
+            console.error(e.response.data);
+            alert(e.response.data.message);
+        } finally {
+            dispatch(hideLoader());
         }
     };
 }

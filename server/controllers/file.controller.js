@@ -65,6 +65,17 @@ class FileController {
             next(e);
         }
     }
+
+    async searchForFiles(req, res, next) {
+        try {
+            const searchWord = req.query.search;
+            const userId = req.user.id;
+            const files = await fileService.searchForFiles(searchWord, userId);
+            return res.json({ files });
+        } catch (e) {
+            next(e);
+        }
+    }
 }
 
 export default new FileController();

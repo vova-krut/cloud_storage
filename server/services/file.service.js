@@ -31,10 +31,14 @@ class FileService {
     }
 
     async fetchFiles(user, parent, sort) {
-        const files = sort
-            ? await File.find({ user, parent }).sort({ [sort]: 1 })
-            : await File.find({ user, parent });
-        return files;
+        try {
+            const files = sort
+                ? await File.find({ user, parent }).sort({ [sort]: 1 })
+                : await File.find({ user, parent });
+            return files;
+        } catch (e) {
+            throw ApiError.InternalError(e);
+        }
     }
 
     async uploadFile(file, userId, parentId) {
@@ -82,6 +86,16 @@ class FileService {
             await this._deleteFileFromParent(file);
         } catch (e) {
             throw new ApiError(400, "Dir is not empty");
+        }
+    }
+
+    async searchForFiles(searchWord, userId) {
+        try {
+            let files = await File.find({ user: userId });
+            files = files.filter((file) => file.name.includes(searchWord));
+            return files;
+        } catch (e) {
+            throw new ApiError(400, "Search error");
         }
     }
 
