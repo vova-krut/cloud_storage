@@ -1,4 +1,5 @@
 import axios from "axios";
+import { API_URL } from "../config";
 import { hideLoader, showLoader } from "../reducers/appReducer";
 import { addFile, deleteFileAction, setFiles } from "../reducers/fileReducer";
 import {
@@ -11,7 +12,7 @@ export function getFiles(dirId, sort) {
     return async (dispatch) => {
         try {
             dispatch(showLoader());
-            let url = `http://localhost:5000/api/file?sort=${sort}`;
+            let url = `${API_URL}api/file?sort=${sort}`;
             if (dirId) {
                 url += `&parent=${dirId}`;
             }
@@ -33,7 +34,7 @@ export function createDir(dirId, name) {
     return async (dispatch) => {
         try {
             const response = await axios.post(
-                `http://localhost:5000/api/file`,
+                `${API_URL}api/file`,
                 {
                     name,
                     parent: dirId,
@@ -67,7 +68,7 @@ export function uploadFile(file, dirId) {
             dispatch(showUploader());
             dispatch(addUploadFile(uploadFile));
             const response = await axios.post(
-                `http://localhost:5000/api/file/upload`,
+                `${API_URL}api/file/upload`,
                 formData,
                 {
                     headers: {
@@ -102,14 +103,11 @@ export function uploadFile(file, dirId) {
 }
 
 export async function downloadFile(file) {
-    const response = await fetch(
-        `http://localhost:5000/api/file/download?id=${file._id}`,
-        {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-        }
-    );
+    const response = await fetch(`${API_URL}api/file/download?id=${file._id}`, {
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+    });
     if (response.status === 200) {
         const blob = await response.blob();
         const downloadUrl = window.URL.createObjectURL(blob);
@@ -126,7 +124,7 @@ export function deleteFile(file) {
     return async (dispatch) => {
         try {
             const response = await axios.delete(
-                `http://localhost:5000/api/file?id=${file._id}`,
+                `${API_URL}api/file?id=${file._id}`,
                 {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem(
@@ -148,7 +146,7 @@ export function searchFiles(search) {
     return async (dispatch) => {
         try {
             const response = await axios.get(
-                `http://localhost:5000/api/file/search?search=${search}`,
+                `${API_URL}api/file/search?search=${search}`,
                 {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem(

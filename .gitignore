@@ -1,5 +1,6 @@
 # Storage of uploaded files
 files/
+static/
 
 # Logs
 logs
