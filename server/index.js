@@ -12,6 +12,7 @@ const PORT = config.get("port") || 5000;
 
 app.use(fileUpload({}));
 app.use(express.json());
+app.use(express.static("static"));
 app.use(cors());
 app.use("/api", router);
 app.use(errorMiddleware);

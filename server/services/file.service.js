@@ -2,6 +2,8 @@ import File from "../models/File.js";
 import ApiError from "../errors/api.error.js";
 import userService from "./user.service.js";
 import fsService from "./fs.service.js";
+import * as uuid from "uuid";
+import config from "config";
 
 class FileService {
     async createDir(name, type, parent, userId) {
@@ -35,6 +37,7 @@ class FileService {
             const files = sort
                 ? await File.find({ user, parent }).sort({ [sort]: 1 })
                 : await File.find({ user, parent });
+
             return files;
         } catch (e) {
             throw ApiError.InternalError(e);
@@ -56,7 +59,13 @@ class FileService {
 
             fsService.registerFileInFs(dbFile);
 
-            await this._confirmFileUpload(file, dbFile, user, parent);
+            await this._confirmFileUpload(
+                file,
+                fsService.filePath,
+                user,
+                dbFile,
+                parent
+            );
 
             return dbFile;
         } catch (e) {
@@ -68,6 +77,7 @@ class FileService {
         try {
             const file = await File.findOne({ _id: fileId, user: userId });
             const path = fsService.getFilePath(file);
+
             return { file, path };
         } catch (e) {
             throw ApiError.InternalError(e);
@@ -77,10 +87,13 @@ class FileService {
     async deleteFile(fileId, userId) {
         try {
             const file = await File.findOne({ _id: fileId, user: userId });
+
             if (!file) {
                 throw new ApiError(400, "File not found");
             }
+
             fsService.deleteFile(file);
+
             await file.remove();
             await this._deleteFileFromUser(file, userId);
             await this._deleteFileFromParent(file);
@@ -93,16 +106,51 @@ class FileService {
         try {
             let files = await File.find({ user: userId });
             files = files.filter((file) => file.name.includes(searchWord));
+
             return files;
         } catch (e) {
             throw new ApiError(400, "Search error");
         }
     }
 
-    async _confirmFileUpload(file, dbFile, user, parent) {
-        file.mv(fsService.path);
-        await dbFile.save();
-        await user.save();
+    async uploadAvatar(file, userId) {
+        try {
+            const user = await userService.findUserById(userId);
+
+            const avatarName = uuid.v4() + ".jpg";
+            const path = config.get("staticPath") + "\\" + avatarName;
+
+            user.avatar = avatarName;
+
+            await this._confirmFileUpload(file, path, user);
+
+            return user;
+        } catch (e) {
+            throw new ApiError(400, "Upload avatar error");
+        }
+    }
+
+    async deleteAvatar(userId) {
+        try {
+            const user = await userService.findUserById(userId);
+
+            fsService.deleteAvatar(user.avatar);
+
+            user.avatar = null;
+
+            await user.save();
+
+            return user;
+        } catch (e) {
+            throw new ApiError(400, "Delete avatar error");
+        }
+    }
+
+    async _confirmFileUpload(file, path, user, dbFile, parent) {
+        file.mv(path);
+
+        await dbFile?.save();
+        await user?.save();
         await parent?.save();
     }
 
@@ -116,12 +164,14 @@ class FileService {
 
     async _deleteFileFromUser(file, userId) {
         const user = await userService.findUserById(userId);
+
         user.usedSpace -= file.size;
         await user.save();
     }
 
     async _deleteFileFromParent(file) {
         const parent = await File.findById(file.parent);
+
         if (parent) {
             parent.size -= file.size;
             await parent.save();

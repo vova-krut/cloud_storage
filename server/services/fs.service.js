@@ -17,9 +17,9 @@ class FsService {
     }
 
     registerFileInFs(file) {
-        this.path = this.getFilePath(file);
+        this.filePath = this.getFilePath(file);
 
-        if (fs.existsSync(this.path)) {
+        if (fs.existsSync(this.filePath)) {
             throw new ApiError(400, "File already exists");
         }
     }
@@ -35,6 +35,10 @@ class FsService {
         } else {
             fs.unlinkSync(path);
         }
+    }
+
+    deleteAvatar(avatar) {
+        fs.unlinkSync(config.get("staticPath") + "\\" + avatar);
     }
 }
 
