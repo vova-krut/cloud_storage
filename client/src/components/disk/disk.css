@@ -4,6 +4,7 @@
 
 .disk__btns {
     display: flex;
+    flex-wrap: wrap;
 }
 
 .disk__create {
@@ -19,6 +20,29 @@
     padding: 5px 10px;
     cursor: pointer;
     margin-left: 10px;
+    width: 30%;
+}
+
+.disk__plate {
+    margin-left: 64%;
+    width: 15px;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    background: no-repeat center center;
+    background-size: contain;
+    background-image: url("../../assets/img/plate.svg");
+}
+
+.disk__list {
+    margin: 0 10px;
+    width: 15px;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    background: no-repeat center center;
+    background-size: contain;
+    background-image: url("../../assets/img/list.svg");
 }
 
 .drop-area {
@@ -69,7 +93,7 @@ input {
 }
 
 .disk__select {
-    margin-left: 70%;
+    margin-left: 20px;
 }
 
 .loader {
